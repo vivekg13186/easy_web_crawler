@@ -10,6 +10,9 @@ var config = {
     allow_urls: [/\/destinations/],
     run_spider: true,
     delay :100,
+    oncomplete:function(){
+        console.log("completed")
+    },
     data_extract: [
         {
             pattern: /\/destinations\//,
