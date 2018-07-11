@@ -1,6 +1,6 @@
 # simple_web_crawler
 
-This a basic web crawler.Check out example folder for how to use
+This library is a basic wrapper around puppeteer to simplify web crawler.Check out example folder for how to use
 
 # Objective!
 
@@ -11,6 +11,8 @@ This a basic web crawler.Check out example folder for how to use
   - custom data extraction
   - build in spider
   - custom pattern based data extraction
+  - stop and resume the crawling
+  - fast image download
 
 ### USAGE
 
@@ -22,7 +24,8 @@ var config =
      start_urls: [], //list of url to start with
      allow_urls: [], //list of regular expession ,only the urls matching the pattern are opened and processed
      run_spider: false,// (default false)if the flag set to yes crawler automatically extarct the links form the page and add it to the queue(only if it matches above rule)
-     delay :100,//(default 0ms) wait before loading new page (in milliseconds)
+     delay :100,//(default 0ms) wait before loading new page (in milliseconds),
+     canResume :true,//true it will load from previous state false start again.Default value true
      data_extract: [
         {
             pattern: /regexp/, //crawler call the below function if the url matched the pattern 
@@ -30,7 +33,7 @@ var config =
                 /*page   - puppeteer page object 
                 additional  function
                     page.add_url_to_queue(url) - add url to queue for processing
-                    page.download_file(url,filename) - download file like image pdf etc  ...
+                    page.download_image(url,filename) - download image files ...
                     page.write_text_to_file(content, filename) - write text content to file
                     */
             }

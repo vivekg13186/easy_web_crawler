@@ -19,61 +19,98 @@
     ]
  * }
  */
+var readline = require('readline');
 var puppeteer = require('puppeteer');
 var fs = require('fs');
 var mm = require('micromatch');
 const { spawn } = require('child_process');
 const delay = require('delay');
+const download = require('image-downloader')
+
+const STATE_FILE_PATH = './.state'
+const NOTHING = () => { }
 
 
-function addState(msg){
-    fs.appendFileSync('./.state',msg+"\n");
+function addState(msg) {
+    fs.appendFileSync(STATE_FILE_PATH, msg + "\n");
 }
 
 function match(pattern, url) {
     return mm.isMatch(url, pattern)
 }
 
-var ideal_counter=0;
+var ideal_counter = 0;
 
 async function crawler(config) {
     var url_queue = config.start_urls ? config.start_urls : [];
+    config.canResume = config.canResume ? config.canResume : true;
     var finished_url_queue = [];
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    if(url_queue.length>0){
-        url_queue.map((v)=>{
-            addState("a "+v);
+    //resuming from previous state
+    if (config.canResume) {
+        try {
+            var stateLine = fs.readFileSync(STATE_FILE_PATH).toString();
+            stateLine = stateLine.split("\n")
+            url_queue = []
+            finished_url_queue = []
+            for (var i = 0; i < stateLine.length; i++) {
+                var line = stateLine[i];
+                var url = line.substring(2)
+                if (line.startsWith("a ")) {
+                    url_queue.push(url)
+                    console.log("adding ", line)
+                } else if (line.startsWith("d ")) {
+                    url_queue.splice(url_queue.indexOf(url), 1)
+                    finished_url_queue.push(url)
+                    console.log("removing ", line)
+                }
+            }
+        } catch (e) {
+            console.log(e)
+        }
+        console.log("loaded state", url_queue)
+        console.log("finished state", finished_url_queue)
+    }
+
+
+    if (url_queue.length > 0) {
+        url_queue.map((v) => {
+            addState("a " + v);
         })
     }
 
     page.add_urls_to_queue = function (urls) {
-    
         for (i in urls) {
             page.add_url_to_queue(urls[i])
         }
     }
 
+    page.download_image = function (image_download_url, where_to_full_file_path) {
+        const options = { url: image_download_url, dest: where_to_full_file_path }
+        download.image(options)
+            .then(NOTHING)
+            .catch((err) => {
+                console.error("cannot donwload image", err)
+            });
+    }
+
     page.add_url_to_queue = function (url) {
         if (url) {
-            if(url.endsWith("#") || url.endsWith("/")){
-                url = url.substring(0,url.length-1)
+            if (url.endsWith("#") || url.endsWith("/")) {
+                url = url.substring(0, url.length - 1)
             }
             if (url_queue.indexOf(url) == -1 && finished_url_queue.indexOf(url) == -1) {
-                for(i in config.allow_urls){
+                for (i in config.allow_urls) {
                     var reg_exp = config.allow_urls[i]
-                    if(url.match(reg_exp)){
-                        addState("a "+url);
+                    if (url.match(reg_exp)) {
+                        addState("a " + url);
                         url_queue.push(url);
                     }
                 }
             }
         }
-    }
-
-    page.download_file = function (url, filename) {
-        spawn('wget', ['-o', filename, url]);
     }
 
     page.write_text_to_file = function (content, filename) {
@@ -83,7 +120,7 @@ async function crawler(config) {
     while (true) {
         if (url_queue.length == 0) {
             ideal_counter++;
-            if(ideal_counter>100000000){
+            if (ideal_counter > 100000000) {
                 break;
             }
         } else {
@@ -91,44 +128,46 @@ async function crawler(config) {
             await page.goto(url);
             console.log("opening url " + url);
 
-            for (var i =0;i< config.data_extract.length;i++) {
-               var item = config.data_extract[i]
+            for (var i = 0; i < config.data_extract.length; i++) {
+                var item = config.data_extract[i]
                 if (url.match(item.pattern)) {
-                    console.log("processing url",url)
+                    console.log("processing url", url)
                     var fun = item.fun;
-                    try{
+                    try {
                         await fun(page);
-                    }catch(e){
+                    } catch (e) {
                         console.log("error occured while running parsing function and silently ignored");
                         console.log(e);
                     }
                 }
             }
             finished_url_queue.push(url)
-            addState("d "+url);
+            addState("d " + url);
 
             if (config.run_spider) {
                 const urls = await page.$$eval('a', atags => atags.map((e) => e.href));
                 page.add_urls_to_queue(urls)
             }
 
-            
-           
-            
-
             if (config.delay) {
                 await delay(config.delay);
             }
         }
     }
-    try{
-        if(config.oncomplete){
-            config.oncomplete();
+    try {
+        if (config.oncomplete) {
+            try {
+                config.oncomplete();
+            } catch (e) {
+                console.log('error executing on complete function ,ignore');
+                console.log(e)
+            }
+
         }
-    }catch(e){
+    } catch (e) {
         console.log(e)
     }
-    
+
 }
 
 
