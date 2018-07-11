@@ -2,7 +2,7 @@
 
 Web crawler around puppeteer to crawler ajax/java script enabled pages..Check out example folder for how to use
 
-# Objective!
+# Features!
 
   - Support crawling of javascript/ajax pages
   - url filter
