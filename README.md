@@ -1,6 +1,6 @@
-# simple_web_crawler
+# easy_web_crawler
 
-This library is a basic wrapper around puppeteer to simplify web crawler.Check out example folder for how to use
+Web crawler around puppeteer to crawler ajax/java script enabled pages..Check out example folder for how to use
 
 # Objective!
 
@@ -17,7 +17,7 @@ This library is a basic wrapper around puppeteer to simplify web crawler.Check o
 ### USAGE
 
 ```
-var crawler = require("simple_web_crawler")
+var crawler = require("easy_web_crawler")
 
 var config =
 {

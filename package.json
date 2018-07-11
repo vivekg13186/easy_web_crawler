@@ -1,7 +1,7 @@
 {
   "name": "easy_web_crawler",
   "version": "1.0.2",
-  "description": "This is basic web crawler",
+  "description": "Web crawler around puppeteer to crawler ajax/java script enabled pages.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
