@@ -1,6 +1,6 @@
 {
-  "name": "simple_web_crawler",
-  "version": "1.0.0",
+  "name": "easy_web_crawler",
+  "version": "1.0.2",
   "description": "This is basic web crawler",
   "main": "index.js",
   "scripts": {
