@@ -60,18 +60,18 @@ async function crawler(config) {
                 var url = line.substring(2)
                 if (line.startsWith("a ")) {
                     url_queue.push(url)
-                    console.log("adding ", line)
+                    //console.log("adding ", line)
                 } else if (line.startsWith("d ")) {
                     url_queue.splice(url_queue.indexOf(url), 1)
                     finished_url_queue.push(url)
-                    console.log("removing ", line)
+                    //console.log("removing ", line)
                 }
             }
         } catch (e) {
-            console.log(e)
+            //console.log(e)
         }
-        console.log("loaded state", url_queue)
-        console.log("finished state", finished_url_queue)
+        //console.log("loaded state", url_queue)
+        //console.log("finished state", finished_url_queue)
     }
 
 
