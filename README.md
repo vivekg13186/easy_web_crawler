@@ -10,7 +10,7 @@ This a basic web crawler.Check out example folder for how to use
   - delay before page load
   - custom data extraction
   - build in spider
-  - custom pattern based data extarction
+  - custom pattern based data extraction
 
 ### USAGE
 

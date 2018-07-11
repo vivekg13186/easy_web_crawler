@@ -25,6 +25,11 @@ var mm = require('micromatch');
 const { spawn } = require('child_process');
 const delay = require('delay');
 
+
+function addState(msg){
+    fs.appendFileSync('./.state',msg+"\n");
+}
+
 function match(pattern, url) {
     return mm.isMatch(url, pattern)
 }
@@ -37,11 +42,15 @@ async function crawler(config) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
+    if(url_queue.length>0){
+        url_queue.map((v)=>{
+            addState("a "+v);
+        })
+    }
 
     page.add_urls_to_queue = function (urls) {
     
         for (i in urls) {
-            
             page.add_url_to_queue(urls[i])
         }
     }
@@ -55,8 +64,8 @@ async function crawler(config) {
                 for(i in config.allow_urls){
                     var reg_exp = config.allow_urls[i]
                     if(url.match(reg_exp)){
-                        url_queue.push(url)
-                        console.log(" url added ",url)
+                        addState("a "+url);
+                        url_queue.push(url);
                     }
                 }
             }
@@ -75,12 +84,10 @@ async function crawler(config) {
         if (url_queue.length == 0) {
             ideal_counter++;
             if(ideal_counter>100000000){
-               
                 break;
             }
         } else {
             var url = url_queue.pop();
-            finished_url_queue.push(url)
             await page.goto(url);
             console.log("opening url " + url);
 
@@ -89,21 +96,39 @@ async function crawler(config) {
                 if (url.match(item.pattern)) {
                     console.log("processing url",url)
                     var fun = item.fun;
-                    await fun(page);
-                    
+                    try{
+                        await fun(page);
+                    }catch(e){
+                        console.log("error occured while running parsing function and silently ignored");
+                        console.log(e);
+                    }
                 }
             }
+            finished_url_queue.push(url)
+            addState("d "+url);
 
             if (config.run_spider) {
                 const urls = await page.$$eval('a', atags => atags.map((e) => e.href));
                 page.add_urls_to_queue(urls)
             }
+
+            
+           
+            
+
             if (config.delay) {
                 await delay(config.delay);
             }
         }
     }
-    console.log('===================completed=====================');
+    try{
+        if(config.oncomplete){
+            config.oncomplete();
+        }
+    }catch(e){
+        console.log(e)
+    }
+    
 }
 
 
