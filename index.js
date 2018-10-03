@@ -2,7 +2,7 @@
  * config object
  * {
  *      start_urls: [], list of url to start with
- *      allow_urls: [], list of regular expession ,only the urls matching the pattern are opened and processed
+ *      allow_urls: function(url){}, truth function to accept the url or not
  *      run_spider: false, (default false)if the flag set to yes crawler automatically extarct the links form the page and add it to the queue(only if it matches above rule)
  *      delay :100,(default 0ms) wait before loading new page (in milliseconds)
  *      data_extract: [
