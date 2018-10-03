@@ -102,12 +102,15 @@ async function crawler(config) {
                 url = url.substring(0, url.length - 1)
             }
             if (url_queue.indexOf(url) == -1 && finished_url_queue.indexOf(url) == -1) {
-                for (i in config.allow_urls) {
-                    var reg_exp = config.allow_urls[i]
-                    if (url.match(reg_exp)) {
-                        addState("a " + url);
-                        url_queue.push(url);
+                var allow = true;
+                if (config.allow_urls) {
+                    if (!config.allow_urls(url)) {
+                        allow = false;
                     }
+                }
+                if (allow) {
+                    addState("a " + url);
+                    url_queue.push(url);
                 }
             }
         }

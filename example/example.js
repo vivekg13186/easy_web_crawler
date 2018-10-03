@@ -7,7 +7,7 @@ var crawler = require('../index.js')
 
 var config = {
     start_urls: ["https://edition.cnn.com/travel/destinations"],
-    allow_urls: [/\/destinations/],
+    allow_urls: function(url){ return url.indexOf("destinations")>-1; },
     run_spider: true,
     delay :100,
     oncomplete:function(){
