@@ -127,8 +127,16 @@ async function crawler(config) {
             var url = url_queue.pop();
             await page.goto(url);
             console.log("opening url " + url);
-
-            for (var i = 0; i < config.data_extract.length; i++) {
+            var fun = config.data_extract;
+            if (fun) {
+                try {
+                    await fun(page);
+                } catch (e) {
+                    console.log("error occured while running parsing function and silently ignored");
+                    console.log(e);
+                }
+            }
+            /*for (var i = 0; i < config.data_extract.length; i++) {
                 var item = config.data_extract[i]
                 if (url.match(item.pattern)) {
                     console.log("processing url", url)
@@ -140,7 +148,7 @@ async function crawler(config) {
                         console.log(e);
                     }
                 }
-            }
+            }*/
             finished_url_queue.push(url)
             addState("d " + url);
 

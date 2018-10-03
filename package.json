@@ -1,10 +1,10 @@
 {
   "name": "easy_web_crawler",
-  "version": "1.0.2",
-  "description": "Web crawler around puppeteer to crawler ajax/java script enabled pages.",
+  "version": "1.0.3",
+  "description": "Web crawler wrapper around puppeteer module to simply the crawling on ajax/java script enabled pages.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./example/example.js"
   },
   "repository": {
     "type": "git",

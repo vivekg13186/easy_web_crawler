@@ -13,16 +13,12 @@ var config = {
     oncomplete:function(){
         console.log("completed")
     },
-    data_extract: [
-        {
-            pattern: /\/destinations\//,
-            fun: async function (page) {
+    data_extract:  async function (page) {
                 var title = await page.$eval('.Destination__title', tag => tag.innerText);
                 var desc = await page.$eval('.Destination__description', tag => tag.innerText);
                 //console.log(title,desc);
                 page.write_text_to_file(desc, "./" + title + ".txt")
             }
-        }
-    ]
 }
+
 crawler(config)
