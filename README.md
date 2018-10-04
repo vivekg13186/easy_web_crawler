@@ -1,5 +1,7 @@
 # easy_web_crawler
 
+[![Join the chat at https://gitter.im/easy_web_crawler/Lobby](https://badges.gitter.im/easy_web_crawler/Lobby.svg)](https://gitter.im/easy_web_crawler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Web crawler around puppeteer to crawler ajax/java script enabled pages.Check out example folder for how to use
 
 # Features!
