@@ -29,22 +29,22 @@ async function main(searchfor) {
                 prev=now;
                 result=result.concat(now)
             }
-            console.log("loop "+j)
         }
         result = _.uniq(result);
         for(var i=0;i<result.length;i++){
             var url = result[i]
-            var file_path = "/Users/vivek/Documents/GitHub/simple_web_crawler/example/download/danbilzerian/"+searchfor+i+".png"
+            var file_path = parent_path+searchfor+i+".png"
             page.download_image(url,file_path);
-            //console.log(url,file_path)
+
         }
-        
-        //page.write_text_to_file(JSON.stringify(result), "./example/result.json")
+
     });
     scraper.callbackOnFinish(function (result) {
-        ;
+        console.log("finished");
     })
     await scraper.start()
 }
 
-main('')
+var profile=""
+var parent_path=""
+main(profile)

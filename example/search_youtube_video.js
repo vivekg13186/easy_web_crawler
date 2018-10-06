@@ -34,10 +34,8 @@ async function main(searchfor) {
                 prev = now;
                 result = result.concat(now)
             }
-            console.log("loop " + j)
         }
         result = _.uniqBy(result,_.isEqual)
-       // result = _.filter(result, function(o) { return !o.img==null; });;
         page.write_text_to_file(JSON.stringify(result), "./example/result.json")
     });
     scraper.callbackOnFinish(function (result) {
@@ -46,4 +44,5 @@ async function main(searchfor) {
     await scraper.start()
 }
 
-main('tamil songs')
+var search=""
+main(search)
