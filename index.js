@@ -1,186 +1,186 @@
-/**
- * config object
- * {
- *      start_urls: [], list of url to start with
- *      allow_urls: function(url){}, truth function to accept the url or not
- *      run_spider: false, (default false)if the flag set to yes crawler automatically extarct the links form the page and add it to the queue(only if it matches above rule)
- *      delay :100,(default 0ms) wait before loading new page (in milliseconds)
- *      data_extract: [
-        {
-            pattern: <<regexp>>, crawler call the below function if the url matched the pattern 
-            fun: async function (page) {
-                page   - puppeteer page object 
-                additional  function
-                    page.add_url_to_queue(url) - add url to queue for processing
-                    page.download_file(url,filename) - download file like image pdf etc  ...
-                    page.write_text_to_file(content, filename) - write text content to file
-            }
-        }
-    ]
- * }
- */
-var readline = require('readline');
-var puppeteer = require('puppeteer');
-var fs = require('fs');
-var mm = require('micromatch');
-const { spawn } = require('child_process');
-const delay = require('delay');
+"use strict";
+
+const puppeteer = require('puppeteer');
+const Repo = require('./Repo')
 const download = require('image-downloader')
-
-const STATE_FILE_PATH = './.state'
+var fs = require('fs');
 const NOTHING = () => { }
-
-
-function addState(msg) {
-    fs.appendFileSync(STATE_FILE_PATH, msg + "\n");
+var nothingAsyncFunction = async function () { }
+var truthFunction = function () { return true; }
+function isArray(obj) { return Array.isArray(obj) }
+function isString(obj) { return typeof obj == "string" }
+function isBoolean(obj) { return typeof obj == "boolean" }
+function isNumber(obj) { return typeof obj == "number" }
+function isFunction(obj) { return typeof obj == "function" }
+function sleep(milliseconds) {
+    var start = new Date().getTime();
+    for (var i = 0; i < 1e7; i++) {
+        if ((new Date().getTime() - start) > milliseconds) {
+            break;
+        }
+    }
+}
+function correctURL(url) {
+    if (url) {
+        if (url.endsWith("#") || url.endsWith("/")) {
+            url = url.substring(0, url.length - 1)
+        }
+    }
+    return url;
 }
 
-function match(pattern, url) {
-    return mm.isMatch(url, pattern)
+class ScaperInterface {
+
+    constructor() { }
+
+    startWithURLs(listOfURLs) { }
+
+    allowIfMatches(nonAsyncFunction) { }
+
+    saveProgressInFile(filePath) { }
+    
+    enableAutoCrawler(flag) { }
+
+    waitBetweenPageLoad(delayInMilliSeconds) { }
+
+    callbackOnFinish(asyncFunction) { }
+ 
+    callbackOnPageLoad(asyncFunction) { }
+
+    start() { }
 }
 
-var ideal_counter = 0;
+class Scraper extends ScaperInterface {
+    constructor() {
+        super();
+        this._allowIfMatches = truthFunction;
+        this._saveProgress = false;
+        this._saveProgressInFile = null;
+        this._enableAutoCrawler = false;
+        this._delayInMilliSeconds = 0;
+        this._callbackOnFinish = nothingAsyncFunction;
+        this._callbackOnPageLoad = nothingAsyncFunction;
+    }
+    startWithURLs(listOfURLs) {
+        if (isString(listOfURLs)) listOfURLs = [listOfURLs]
+        if (!isArray(listOfURLs)) return;
+        this._listOfURLs = listOfURLs
+    }
+    allowIfMatches(nonAsyncFunction) {
+        if (isFunction(nonAsyncFunction)) { this._allowIfMatches = nonAsyncFunction }
+    }
+    saveProgressInFile(filePath) {
+        if (!isString(filePath)) return
+        this._saveProgress = true;
+        this._saveProgressInFile = filePath
+    }
+    enableAutoCrawler(flag) {
+        if (isBoolean(flag)) { this._enableAutoCrawler = flag }
+    }
+    waitBetweenPageLoad(delayInMilliSeconds) {
+        if (isNumber(delayInMilliSeconds)) { this._delayInMilliSeconds = delayInMilliSeconds }
+    }
+    callbackOnFinish(asyncFunction) {
+        if (isFunction(asyncFunction)) { this._callbackOnFinish = asyncFunction }
+    }
+    callbackOnPageLoad(asyncFunction) {
+        if (isFunction(asyncFunction)) { this._callbackOnPageLoad = asyncFunction }
+    }
 
-async function crawler(config) {
-    var url_queue = config.start_urls ? config.start_urls : [];
-    config.canResume = config.canResume ? config.canResume : true;
-    var finished_url_queue = [];
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+    async _addURL(repo, urls) {
+        if (isString(urls)) urls = [urls]
+        if (!isArray(urls)) return;
+        urls = urls.map(u => { return correctURL(u) })
+        urls = urls.filter(u => { return this._allowIfMatches(u) })
+        repo.addURLS(urls)
+    }
 
-    //resuming from previous state
-    if (config.canResume) {
-        try {
-            var stateLine = fs.readFileSync(STATE_FILE_PATH).toString();
-            stateLine = stateLine.split("\n")
-            url_queue = []
-            finished_url_queue = []
-            for (var i = 0; i < stateLine.length; i++) {
-                var line = stateLine[i];
-                var url = line.substring(2)
-                if (line.startsWith("a ")) {
-                    url_queue.push(url)
-                    //console.log("adding ", line)
-                } else if (line.startsWith("d ")) {
-                    url_queue.splice(url_queue.indexOf(url), 1)
-                    finished_url_queue.push(url)
-                    //console.log("removing ", line)
-                }
-            }
-        } catch (e) {
-            //console.log(e)
+
+    async start() {
+        if (this._saveProgressInFile) {
+            var repo = new Repo(this._saveProgressInFile);
+        } else {
+            var repo = new Repo();
         }
-        //console.log("loaded state", url_queue)
-        //console.log("finished state", finished_url_queue)
-    }
+
+        this.repo = repo;
+        var data = null;
 
 
-    if (url_queue.length > 0) {
-        url_queue.map((v) => {
-            addState("a " + v);
-        })
-    }
-
-    page.add_urls_to_queue = function (urls) {
-        for (i in urls) {
-            page.add_url_to_queue(urls[i])
+        if (this._listOfURLs) {
+            this._addURL(repo, this._listOfURLs)
         }
-    }
 
-    page.download_image = function (image_download_url, where_to_full_file_path) {
-        const options = { url: image_download_url, dest: where_to_full_file_path }
-        download.image(options)
-            .then(NOTHING)
-            .catch((err) => {
-                console.error("cannot donwload image", err)
-            });
-    }
 
-    page.add_url_to_queue = function (url) {
-        if (url) {
-            if (url.endsWith("#") || url.endsWith("/")) {
-                url = url.substring(0, url.length - 1)
-            }
-            if (url_queue.indexOf(url) == -1 && finished_url_queue.indexOf(url) == -1) {
-                var allow = true;
-                if (config.allow_urls) {
-                    if (!config.allow_urls(url)) {
-                        allow = false;
-                    }
-                }
-                if (allow) {
-                    addState("a " + url);
-                    url_queue.push(url);
-                }
-            }
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        //brew page
+        page.download_image = function (image_download_url, where_to_full_file_path) {
+            const options = { url: image_download_url, dest: where_to_full_file_path }
+            download.image(options)
+                .then(NOTHING)
+                .catch((err) => {
+                    console.error("cannot download image", err)
+                });
         }
-    }
 
-    page.write_text_to_file = function (content, filename) {
-        fs.writeFile(filename, content, function (err) { });
-    }
+        page.saveResult = function (data1) {
+            data = JSON.stringify(data1)
+        }
+        page.write_text_to_file = function (content, filename) {
+            fs.writeFile(filename, content, function (err) { });
+        }
+        page.add_url_to_queue = async function (url) {
+            if (isString(url)) {
+                url = [url]
+            }
+            url = url.map(i => { return correctURL(i) })
+            this._addURL(repo, url)
+        }
+        //brew page end
 
-    while (true) {
-        if (url_queue.length == 0) {
-            ideal_counter++;
-            if (ideal_counter > 100000000) {
+        //main loop
+        while (true) {
+
+            var url = await repo.getNextURL();
+
+
+            data = null;
+            if (url == null) {
+                console.log(await repo.getAll())
                 break;
             }
-        } else {
-            var url = url_queue.pop();
+
             await page.goto(url);
-            console.log("opening url " + url);
-            var fun = config.data_extract;
-            if (fun) {
-                try {
-                    await fun(page);
-                } catch (e) {
-                    console.log("error occured while running parsing function and silently ignored");
-                    console.log(e);
-                }
-            }
-            /*for (var i = 0; i < config.data_extract.length; i++) {
-                var item = config.data_extract[i]
-                if (url.match(item.pattern)) {
-                    console.log("processing url", url)
-                    var fun = item.fun;
-                    try {
-                        await fun(page);
-                    } catch (e) {
-                        console.log("error occured while running parsing function and silently ignored");
-                        console.log(e);
-                    }
-                }
-            }*/
-            finished_url_queue.push(url)
-            addState("d " + url);
-
-            if (config.run_spider) {
-                const urls = await page.$$eval('a', atags => atags.map((e) => e.href));
-                page.add_urls_to_queue(urls)
-            }
-
-            if (config.delay) {
-                await delay(config.delay);
-            }
-        }
-    }
-    try {
-        if (config.oncomplete) {
             try {
-                config.oncomplete();
-            } catch (e) {
-                console.log('error executing on complete function ,ignore');
-                console.log(e)
-            }
+                await this._callbackOnPageLoad(page);
+                repo.finishURL(url, data);
 
+            } catch (e) {
+                repo.failURL(url, data);
+                console.log(e)
+                console.log("error occured while running parsing function and silently ignored");
+            }
+            if (this._enableAutoCrawler) {
+
+
+                const urls = await page.$$eval('a', atags => atags.map((e) => e.href));
+                this._addURL(repo, urls)
+            }
+            if (this._delayInMilliSeconds) {
+                sleep(this._delayInMilliSeconds);
+            }
         }
-    } catch (e) {
-        console.log(e)
+
+        if (this._callbackOnFinish) {
+            await this._callbackOnFinish(repo.getAll())
+        }
+        browser.close();
+        //main loop end
     }
+
 
 }
 
-
-
-module.exports = crawler
+module.exports = Scraper

@@ -1,24 +1,22 @@
-/*
-Install new version for this example
-npm i --save puppeteer@next
-*/
+var Scraper = require('../index.js')
 
-var crawler = require('../index.js')
+async function main() {
 
-var config = {
-    start_urls: ["https://edition.cnn.com/travel/destinations"],
-    allow_urls: function(url){ return url.indexOf("destinations")>-1; },
-    run_spider: true,
-    delay :100,
-    oncomplete:function(){
-        console.log("completed")
-    },
-    data_extract:  async function (page) {
-                var title = await page.$eval('.Destination__title', tag => tag.innerText);
-                var desc = await page.$eval('.Destination__description', tag => tag.innerText);
-                //console.log(title,desc);
-                page.write_text_to_file(desc, "./" + title + ".txt")
-            }
+    var scraper = new Scraper();
+    scraper.startWithURLs("https://edition.cnn.com/travel/destinations")
+    scraper.allowIfMatches(function (url) { return url.indexOf("destinations") > -1; })
+    scraper.enableAutoCrawler(true)
+    scraper.saveProgressInFile("hello.db")
+    scraper.waitBetweenPageLoad(0)
+    scraper.callbackOnPageLoad(async function (page) {
+        var title = await page.$eval('.Destination__title', tag => tag.innerText);
+        var desc = await page.$eval('.Destination__description', tag => tag.innerText);
+        page.saveResult(desc)
+    });
+    scraper.callbackOnFinish(function (result) {
+        console.log(JSON.stringify(result,null,4))
+    })
+    await scraper.start()
 }
 
-crawler(config)
+main()

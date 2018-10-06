@@ -4,7 +4,8 @@
   "description": "Web crawler wrapper around puppeteer module to simply the crawling on ajax/java script enabled pages.",
   "main": "index.js",
   "scripts": {
-    "test": "node ./test/TestSessionRepo.js"
+    "test": "node ./test/test.js",
+    "doc": "documentation build doc_scaper_class.js -f html -o ./doc"
   },
   "repository": {
     "type": "git",
@@ -18,14 +19,9 @@
   ],
   "dependencies": {
     "better-sqlite3": "^4.1.4",
-    "delay": "^3.0.0",
     "image-downloader": "^3.4.1",
     "lodash": "^4.17.11",
-    "lokijs": "^1.5.5",
-    "micromatch": "^3.1.10",
-    "nedb": "^1.8.0",
-    "puppeteer": "^1.5.0-next.1531189632656",
-    "sqlite3": "^4.0.2"
+    "puppeteer": "^1.5.0-next.1531189632656"
   },
   "author": "Vivek Gangadharan <vivek13186@gmail.com>",
   "license": "MIT",
