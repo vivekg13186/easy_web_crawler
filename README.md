@@ -10,10 +10,12 @@ Web crawler around puppeteer to crawler ajax/java script enabled pages.Check out
   - delay before page load
   - custom data extraction
   - build in spider
-  - custom pattern based data extraction
   - stop and resume the crawling
   - fast image download
 
+### Documentation
+    [Full Documentation](https://vivekg13186.github.io/easy_web_crawler/)
+    
 ### USAGE
 
 ```
@@ -40,6 +42,10 @@ var config =
 crawler(config);
 
 ```
+
+### Gitter
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/easy_web_crawler/Lobby)
+
 License
 ----
 
