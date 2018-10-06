@@ -33,7 +33,7 @@ async function main() {
     scraper.saveProgressInFile("hello.db")
     scraper.waitBetweenPageLoad(0)
     scraper.callbackOnPageLoad(async function (page) {
-        <<scarping logic here>>
+        <<logic here>>
     });
     scraper.callbackOnFinish(function (result) {
         console.log(JSON.stringify(result,null,4))
