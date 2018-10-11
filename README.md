@@ -14,7 +14,7 @@ Web crawler around puppeteer to crawler ajax/java script enabled pages.Check out
   - fast image download
 
 # Documentation
-[Read full documentation here](https://vivekg13186.github.io/easy_web_crawler/)
+[Read full documentation here](https://vivekg13186.github.io/easy_web_crawler/1.0.5/)
 
 
    

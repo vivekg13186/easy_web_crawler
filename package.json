@@ -1,6 +1,6 @@
 {
   "name": "easy_web_crawler",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Web crawler wrapper around puppeteer module to simply the crawling on ajax/java script enabled pages.",
   "main": "index.js",
   "scripts": {
